@@ -2,8 +2,17 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "../../generated/prisma/client";
 import { prisma } from "./prisma";
+import nodemailer from "nodemailer";
 // If your Prisma file is located elsewhere, you can change the path
-
+const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // Use true for port 465, false for port 587
+    auth: {
+        user: process.env.APP_USER,
+        pass: process.env.APP_PASS,
+    },
+});
 
 
 export const auth = betterAuth({
@@ -29,14 +38,24 @@ export const auth = betterAuth({
             }
         }
     },
-        emailAndPassword: {
-            enabled: true,
-            autoSignIn: false,
-            requireEmailVerification: true
+    emailAndPassword: {
+        enabled: true,
+        autoSignIn: false,
+        requireEmailVerification: true
+    },
+    emailVerification: {
+        sendVerificationEmail: async ({ user, url, token }, request) => {
+            const verifucationUrl = `${process.env.APP_URL}/verify-email?token=${token}`;
+            console.log({ user, url, token });
+            const info = await transporter.sendMail({
+                from: '"Maddison Foo Koch" <riponsaha@ph.com>',
+                to: "riponsaha19@gmail.com",
+                subject: "Hello ✔",
+                text: "Hello world?", // Plain-text version of the message
+                html: "<b>Hello world?</b>", // HTML version of the message
+            });
+
+            console.log("Message sent:", info.messageId);
         },
-        emailVerification: {
-            sendVerificationEmail: async ({ user, url, token }, request) => {
-               console.log("verification email send");
-            },
-        },
-    });
+    },
+});

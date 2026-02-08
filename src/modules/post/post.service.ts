@@ -15,13 +15,14 @@ const createPost = async (data: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'a
 }
 
 const getAllPost = async ({
-    search, tags
+    search, tags, isFeatured
 
 }: {
     search: string | undefined
-    , tags: string[] | []
+    , tags: string[] | [],
+    isFeatured: boolean
 }) => {
-    const andConditions:PostWhereInput[] = []
+    const andConditions: PostWhereInput[] = []
     if (search) {
         andConditions.push({
             OR: [
@@ -52,15 +53,22 @@ const getAllPost = async ({
             }
         })
     }
-    const allPost = await prisma.post.findMany({
-        where: {
-            AND: andConditions
-        }
-    });
-    return allPost;
 
+    if (typeof isFeatured === 'boolean') {
+        andConditions.push({
+            isFeatured
+        })
+    } {
+        const allPost = await prisma.post.findMany({
+            where: {
+                AND: andConditions
+            }
+        });
+        return allPost;
+
+    }
 }
-export const postService = {
-    createPost,
-    getAllPost
-}
+    export const postService = {
+        createPost,
+        getAllPost
+    }

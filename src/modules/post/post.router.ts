@@ -6,6 +6,10 @@ const router = express.Router();
 
 
 /* ===== Routes ===== */
+router.get(
+    "/",
+    PostController.getAllPost
+)
 router.post(
     "/",
     auth(UserRole.USER),

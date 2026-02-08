@@ -6,7 +6,8 @@ import { Post } from "../../../generated/prisma/client";
 const createPost = async (req: Request, res: Response) => {
 
   try {
-    const user = req.user;
+    const user = req.user as any;
+    /* const {user} = req; */
 
     if (!user) {
       return res.status(400).json({
@@ -24,6 +25,23 @@ const createPost = async (req: Request, res: Response) => {
     })
   }
 }
+
+const getAllPost = async (req: Request, res: Response) => {
+  try {
+    const { search } = req.query
+    console.log("search value", search)
+    const searchString = typeof search === 'string' ? search : undefined
+    const result = await postService.getAllPost({search: searchString});
+    res.status(200).json(result)
+  }
+  catch (e) {
+    res.status(400).json({
+      message: "Failed to get all posts",
+      details: e
+    })
+  }
+}
 export const PostController = {
-  createPost
+  createPost,
+  getAllPost
 }

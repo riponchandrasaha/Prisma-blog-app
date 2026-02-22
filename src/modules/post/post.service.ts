@@ -1,15 +1,15 @@
-import { Post, PostStatus } from "../../../generated/prisma/client";
+import { CommentStatus, Post, PostStatus } from "../../../generated/prisma/client";
 import { PostWhereInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
 
 const createPost = async (data: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'authorId'>, userId: string) => {
-    const result = await prisma.post.create({
+    return await prisma.post.create({
         data: {
             ...data,
             authorId: userId
         }
     })
-    return result;
+
 }
 
 const getAllPost = async ({
@@ -95,6 +95,11 @@ const getAllPost = async ({
         },
         orderBy: {
             [sortBy]: sortOrder
+        },
+        include: {
+            _count: {
+                select: { comments: true }
+            }
         }
     });
 
@@ -114,11 +119,11 @@ const getAllPost = async ({
     };
 }
 
-const getPostById = async (postId: any) => {
+const getPostById = async (postId: string) => {
     return await prisma.$transaction(async (tx) => {
         await tx.post.update({
             where: {
-                id: postId as any
+                id: postId
             },
             data: {
                 views: {
@@ -129,6 +134,34 @@ const getPostById = async (postId: any) => {
         const postData = await tx.post.findUnique({
             where: {
                 id: postId
+            },
+            include: {
+                comments: {
+                    where: {
+                        parentId: null,
+                        status: CommentStatus.APPROVED
+                    },
+                    orderBy: { createdAt: "desc" },
+                    include: {
+                        replies: {
+                            where: {
+                                status: CommentStatus.APPROVED
+                            },
+                            orderBy: { createdAt: "asc" },
+                            include: {
+                                replies: {
+                                    where: {
+                                        status: CommentStatus.APPROVED
+                                    },
+                                    orderBy: { createdAt: "asc" }
+                                }
+                            }
+                        }
+                    }
+                },
+                _count: {
+                    select: { comments: true }
+                }
             }
         })
         return postData

@@ -50,13 +50,13 @@ const auth = (...roles: UserRole[]) => {
                 emailVerified: session.user.emailVerified
             }
 
-            /* if (roles.length && !roles.includes(req.user.role as UserRole)) {
+           /*  if (roles.length && !roles.includes(req.user.role as UserRole)) {
                 return res.status(403).json({
                     success: false,
                     message: "Forbidden! You don't have permission to access this resources!"
                 })
-            }
- */
+            } */
+
             next()
         } catch (err) {
             next(err);

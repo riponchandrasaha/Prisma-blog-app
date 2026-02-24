@@ -1,12 +1,12 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { postService } from "./post.service";
 import { PostStatus } from "../../../generated/prisma/enums";
 import paginationSortingHelper from "../../helpers/paginationSortingHelper";
 import { UserRole } from "../../middlewares/auth";
 
-const createPost = async (req: Request, res: Response) => {
+const createPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = req.user;
+        const {user} = req;
         if (!user) {
             return res.status(400).json({
                 error: "Unauthorized!",
@@ -15,15 +15,12 @@ const createPost = async (req: Request, res: Response) => {
         const result = await postService.createPost(req.body, user.id as string)
         res.status(201).json(result)
     } catch (e) {
-        res.status(400).json({
-            error: "Post creation failed",
-            details: e
-        })
+        next(e)
     }
 }
 
 
-const getAllPost = async (req: Request, res: Response) => {
+const getAllPost = async (req: Request, res: Response,next:NextFunction) => {
     try {
         const { search } = req.query
         const searchString = typeof search === 'string' ? search : undefined
@@ -49,10 +46,7 @@ const getAllPost = async (req: Request, res: Response) => {
         const result = await postService.getAllPost({ search: searchString, tags, isFeatured, status, authorId, page, limit, skip, sortBy, sortOrder })
         res.status(200).json(result)
     } catch (e) {
-        res.status(400).json({
-            error: "Post creation failed",
-            details: e
-        })
+        next(e)
     }
 }
 
